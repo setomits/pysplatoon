@@ -121,3 +121,19 @@ class Client:
 
         return r.json()
 
+    def ranking(self):
+        if not self.loggingin:
+            self.login()
+
+
+        r = requests.get('https://splatoon.nintendo.net/ranking/index.json',
+                         cookies = self.cookies)
+
+        dat = r.json()
+
+        for k in dat.keys():
+            for i, friend in enumerate(dat[k]):
+                dat[k][i]['score'] = int(''.join(friend['score']))
+                dat[k][i]['rank'] = int(''.join(friend['rank']))
+
+        return dat
