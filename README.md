@@ -21,4 +21,10 @@ Only latest Python is supported.
 >>> friends = c.fliend_list()
 >>> for friend in friends:
 ...   print(friend['mii_name'], ':', friend['mode'])
+
+>>> ranking = c.ranking()
+>>> for friend in ranking['regular']:
+...   print(friend['rank'], friend['mii_name'], friend['score'])
+>>> for friend in ranking['gachi']:
+...   print(friend['rank'], friend['mii_name'], friend['score'])
 ```
