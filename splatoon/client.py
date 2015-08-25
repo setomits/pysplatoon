@@ -15,6 +15,9 @@ class Client:
         self.cookies = None
         self.loggingin = False
 
+        self._cookies_path = './cookies/%s' % self.username
+
+
     def _login_params(self):
         r = requests.get("https://splatoon.nintendo.net/users/auth/nintendo")
         doc = PyQuery(r.content)
@@ -42,14 +45,17 @@ class Client:
 
         return params
 
+    def _has_cookies(self):
+        return os.path.exists(self._cookies_path)
+
     def _save_cookies(self, cookies):
-        with open('./cookies/%s' % self.username, 'wb') as f:
+        with open(self._cookies_path, 'wb') as f:
             pickle.dump(dict(cookies), f)
 
         self.cookies = cookies
         
     def _load_cookies(self):
-        with open("./cookies/%s" % self.username, "rb") as f:
+        with open(self._cookies_path, "rb") as f:
             d = pickle.load(f)
             self.cookies = requests.utils.cookiejar_from_dict(d)
             self.loggingin = True
@@ -63,10 +69,10 @@ class Client:
             else:
                 raise UnboundLocalError('password is not set')
 
-        if force and os.path.exists("./cookies/%s" % self.username):
+        if force and self._has_cookies():
             os.remove("./cookies/%s" % self.username)
 
-        if os.path.exists("./cookies/%s" % self.username):
+        if self._has_cookies():
             self._load_cookies()
         else:
             params = self._login_params()
@@ -74,8 +80,12 @@ class Client:
             r = requests.post('https://id.nintendo.net/oauth/authorize',
                               data = params,
                               cookies = self.cookies)
-            self._save_cookies(r.cookies)
-            self.loggingin = True
+
+            if r.url == 'https://id.nintendo.net/oauth/authorize':
+                raise RuntimeError('unauthorized')
+            else:
+                self._save_cookies(r.cookies)
+                self.loggingin = True
 
     def current_stages(self):
         d = dict(
