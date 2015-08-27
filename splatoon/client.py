@@ -7,6 +7,8 @@ import pickle
 import requests
 from pyquery import PyQuery
 
+SPL_ROOT = 'https://splatoon.nintendo.net'
+
 class Client:
     def __init__(self, username, password = '', lang = 'ja-JP'):
         self.username = username
@@ -19,7 +21,7 @@ class Client:
 
 
     def _login_params(self):
-        r = requests.get("https://splatoon.nintendo.net/users/auth/nintendo")
+        r = requests.get(SPL_ROOT + "/users/auth/nintendo")
         doc = PyQuery(r.content)
 
         params = dict(
@@ -87,36 +89,12 @@ class Client:
                 self._save_cookies(r.cookies)
                 self.loggingin = True
 
-    def current_stages(self):
-        d = dict(
-            regular_stages = [],
-            earnest_rule = '',
-            earnest_stages = []
-        )
-
-        if not self.loggingin:
-            self.login()
-
-        r = requests.get('https://splatoon.nintendo.net/schedule',
-                         cookies = self.cookies)
-
-        doc = PyQuery(r.text)
-
-        map_names = doc('span.map-name')
-        if map_names:
-            d['regular'] = [mn.text for mn in map_names[0:2]]
-            d['earnest'] = [mn.text for mn in map_names[2:4]]
-            d['earnest_rule'] = doc('span.rule-description')[0].text
-
-
-        return d
-
     def friend_list(self):
         if not self.loggingin:
             self.login()
 
 
-        r = requests.get('https://splatoon.nintendo.net/friend_list/index.json',
+        r = requests.get(SPL_ROOT + '/friend_list/index.json',
                          cookies = self.cookies)
 
         return r.json()
@@ -126,7 +104,7 @@ class Client:
             self.login()
 
 
-        r = requests.get('https://splatoon.nintendo.net/ranking/index.json',
+        r = requests.get(SPL_ROOT + '/ranking/index.json',
                          cookies = self.cookies)
 
         dat = r.json()
@@ -137,3 +115,38 @@ class Client:
                 dat[k][i]['rank'] = int(''.join(friend['rank']))
 
         return dat
+
+    def current_stages(self):
+        d = dict(
+            regular = [],
+            gachi_rule = '',
+            gachi = []
+        )
+
+        if not self.loggingin:
+            self.login()
+
+        r = requests.get(SPL_ROOT + '/schedule', cookies = self.cookies)
+
+        doc = PyQuery(r.text)
+
+        names = doc('span.map-name')
+        images = doc('span.map-image')
+
+        if names and images:
+            for i in range(4):
+                if i < 2:
+                    d['regular'].append(dict(
+                        name = names[i].text,
+                        image = images[i].attrib['data-retina-image'],
+                    ))
+                else:
+                    d['gachi'].append(dict(
+                        name = names[i].text,
+                        image = SPL_ROOT + images[i].attrib['data-retina-image'],
+                    ))
+
+            d['gachi_rule'] = doc('span.rule-description')[0].text
+
+        return d
+
