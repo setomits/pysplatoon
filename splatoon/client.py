@@ -3,6 +3,7 @@
 
 import os.path
 import pickle
+import tempfile
 
 import requests
 from pyquery import PyQuery
@@ -17,8 +18,11 @@ class Client:
         self.cookies = None
         self.loggingin = False
 
-        self._cookies_path = './cookies/%s' % self.username
+        cookies_dir = '%s/pysplatoon' % tempfile.gettempdir()
+        if not os.path.exists(cookies_dir):
+            os.makedirs(cookies_dir)
 
+        self._cookies_path = '%s/%s' % (cookies_dir, self.username)
 
     def _login_params(self):
         r = requests.get(SPL_ROOT + "/users/auth/nintendo")
@@ -92,7 +96,6 @@ class Client:
     def friend_list(self):
         if not self.loggingin:
             self.login()
-
 
         r = requests.get(SPL_ROOT + '/friend_list/index.json',
                          cookies = self.cookies)
