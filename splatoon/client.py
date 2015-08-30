@@ -76,7 +76,7 @@ class Client:
                 raise UnboundLocalError('password is not set')
 
         if force and self._has_cookies():
-            os.remove("./cookies/%s" % self.username)
+            os.remove(self._cookies_path)
 
         if self._has_cookies():
             self._load_cookies()
@@ -119,13 +119,7 @@ class Client:
 
         return dat
 
-    def current_stages(self):
-        d = dict(
-            regular = [],
-            gachi_rule = '',
-            gachi = []
-        )
-
+    def schedule(self):
         if not self.loggingin:
             self.login()
 
@@ -133,23 +127,47 @@ class Client:
 
         doc = PyQuery(r.text)
 
-        names = doc('span.map-name')
-        images = doc('span.map-image')
+        spans = doc('span.stage-schedule')
+        r_names = doc('div.stage-list:even span.map-name')
+        r_imgs = doc('div.stage-list:even span.map-image')
+        g_names = doc('div.stage-list:odd span.map-name')
+        g_imgs = doc('div.stage-list:odd span.map-image')
+        g_rules = doc('div.stage-list:odd span.rule-description')
 
-        if names and images:
-            for i in range(4):
-                if i < 2:
-                    d['regular'].append(dict(
-                        name = names[i].text,
-                        image = images[i].attrib['data-retina-image'],
+        stages = []
+
+        if spans:
+            for i in range(len(spans)):
+                stages.append(
+                    dict(
+                        span = spans.eq(i).text(),
+                        stages = dict(
+                            regular = [
+                                dict(name = r_names.eq(2*i).text(),
+                                     image = SPL_ROOT + \
+                                     r_imgs.eq(2*i).attr('data-retina-image')),
+                                dict(name = r_names.eq(2*i+1).text(),
+                                     image = SPL_ROOT + \
+                                     r_imgs.eq(2*i+1).attr('data-retina-image')),
+                            ],
+                            gachi = [
+                                dict(name = g_names.eq(2*i).text(),
+                                     image = SPL_ROOT + \
+                                     g_imgs.eq(2*i).attr('data-retina-image')),
+                                dict(name = g_names.eq(2*i+1).text(),
+                                     image = SPL_ROOT + \
+                                     g_imgs.eq(2*i+1).attr('data-retina-image')),
+                            ]),
+                        gachi_rule = g_rules.eq(i).text()
                     ))
-                else:
-                    d['gachi'].append(dict(
-                        name = names[i].text,
-                        image = SPL_ROOT + images[i].attrib['data-retina-image'],
-                    ))
 
-            d['gachi_rule'] = doc('span.rule-description')[0].text
+        return stages
 
-        return d
+
+    def current_stages(self):
+        _stages = self.schedule()
+        if len(_stages):
+            return _stages[0]
+        else:
+            return {}
 
