@@ -1,7 +1,7 @@
 from distutils.core import setup
 
 setup(name = "pysplatoon",
-      version = "0.0.1",
+      version = "0.0.2",
       description = "Python client library to get Splatoon data",
       author = "Mitsuhiro Setoguchi",
       author_email = "setomits@gmail.com",
