@@ -11,12 +11,12 @@ Only latest Python is supported.
 >>> c = Client('YOUR_USER_NAME', 'YOUR_PASSWORD')
 >>> c.login()
 
->>> stages = c.current_stages()
->>> for stage in stages['regurar']
+>>> current = c.current_stages()
+>>> for stage in current['stages']['regurar']
 ...   print(stage)
->>> for stage in stages['earnest']
+>>> for stage in current['stages']['gachi']
 ...   print(stage)
->>> print(stages['earnest_rule'])
+>>> print(current['gachi_rule'])
 
 >>> friends = c.fliend_list()
 >>> for friend in friends:
