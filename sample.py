@@ -7,15 +7,15 @@ def _main():
     c = Client('YOUR_USER_NAME', 'YOUR_PASSWORD')
     c.login()
 
-    stages = c.current_stages()
+    current = c.current_stages()
     print('# Regular Stages')
-    for s in stages['regular']:
-        print('*', s)
+    for stage in current['stages']['regular']:
+        print('*', stage)
     print()
 
-    print('# Earnest Stages:', stages['earnest_rule'])
-    for s in stages['earnest']:
-        print('*', s)
+    print('# Gachi Stages:', current['gachi_rule'])
+    for stage in current['stages']['gachi']:
+        print('*', stage)
     print()
 
     friends = c.friend_list()
